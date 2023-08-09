@@ -1,17 +1,40 @@
+/**
+ * Archivo: index.js
+ * Descripción: Este archivo contiene la configuración y rutas para un servidor de autenticación con JWT.
+ * El servidor utiliza Express para manejar las solicitudes HTTP y Mongoose para conectarse a una base de datos MongoDB.
+ * También utiliza bcrypt para cifrar contraseñas y jsonwebtoken para generar y validar tokens JWT.
+ *
+ * Rutas:
+ * - POST /register: Registra un nuevo usuario en la base de datos.
+ * - POST /login: Inicia sesión con un usuario existente.
+ * - GET /lele: Ruta de ejemplo para usuarios autenticados.
+ *
+ * Middlewares:
+ * - isAuthenticated: Middleware que verifica si el usuario está autenticado antes de permitir el acceso a ciertas rutas.
+ *
+ * @packageDocumentation
+ */
+/**
+ * Importing required modules
+ */
 import express, { json } from "express";
 import { connect } from "mongoose";
 import { genSalt, hash, compare } from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "./User.js";
-
 import expressJwt from "express-jwt";
 
+/**
+ * Initializing the express app
+ */
 const app = express();
 app.use(json());
 
 console.log(process.env.SECRET);
 
-// Connect to MongoDB
+/**
+ * Connecting to MongoDB
+ */
 (async () => {
   try {
     await connect(
@@ -27,12 +50,22 @@ console.log(process.env.SECRET);
   }
 })();
 
+/**
+ * Validating JWT token
+ */
 const validateJwt = expressJwt({
   secret: process.env.SECRET,
   algorithms: ["HS256"],
-}); // Validar token
+});
+
+/**
+ * Signing JWT token
+ */
 const signToken = (_id) => jwt.sign({ _id }, process.env.SECRET);
 
+/**
+ * Registering a new user
+ */
 app.post("/register", async (req, res) => {
   const { body } = req;
   console.log({ body });
@@ -59,6 +92,9 @@ app.post("/register", async (req, res) => {
   }
 });
 
+/**
+ * Logging in a user
+ */
 app.post("/login", async (req, res) => {
   const { body } = req;
   try {
@@ -80,6 +116,9 @@ app.post("/login", async (req, res) => {
   }
 });
 
+/**
+ * Finding and assigning user
+ */
 const findAndAssingUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id);
@@ -93,22 +132,37 @@ const findAndAssingUser = async (req, res, next) => {
   }
 };
 
+/**
+ * Authenticating user
+ */
 const isAuthenticated = express.Router().use(validateJwt, findAndAssingUser);
 
+/**
+ * Sample route for authenticated user
+ */
 app.get("/lele", isAuthenticated, (req, res) => {
   throw new Error("Error de prueba");
   res.send(req.user);
 });
 
+/**
+ * Error handling middleware
+ */
 app.use((err, req, res, next) => {
   console.error(err);
   res.status(500).json({ "mi nuevo error": err.message });
 });
 
+/**
+ * Error handling middleware
+ */
 app.use((err, req, res, next) => {
   console.error(err);
   res.send("Ha ocurrido un Error Aqui iria el html");
 });
 
+/**
+ * Starting the server
+ */
 const PORT = 3000;
 app.listen(PORT, () => console.log(`Server started at port ${PORT}`));
