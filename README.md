@@ -1,2 +1,7 @@
-# ejercicio-MongoDB-JWT
-# ejercicio-MongoDB-JWT
+`npm update`
+`npm install`
+`npm start`
+
+## Usage
+
+`npm start`
